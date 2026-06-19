@@ -1,0 +1,72 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath, amssymb}
+\usepackage{geometry}
+\usepackage{parskip}
+
+\geometry{margin=1.2in}
+
+\title{Perikymata Distribution from the Final Curve}
+\date{}
+
+\begin{document}
+\maketitle
+
+Given the final outer enamel surface (OES) $\mathbf{r}_f(s) = (x_f(s), y_f(s))$ and the
+termination time field $t^*(s)$, the perikymata distribution measures how much developmental
+time is compressed into each spatial region of the OES.
+
+%------------------------------------------------------------------
+\section{Establish a Reference Axis}
+%------------------------------------------------------------------
+
+In general, the reference axis is specified as an arbitrary unit vector
+$\hat{\mathbf{d}} \in \mathbb{R}^2$ and an origin point $\mathbf{r}_0$ on the OES.
+The projected coordinate of each point along the crown is then
+\begin{equation}
+    \rho(s) = \bigl(\mathbf{r}_f(s) - \mathbf{r}_0\bigr) \cdot \hat{\mathbf{d}}.
+\end{equation}
+The integration bounds are $\rho \in [0, H]$ where $H = \max_s \rho(s)$. When the geometry
+admits well-defined anatomical landmarks, $\hat{\mathbf{d}}$ and $\mathbf{r}_0$ can be set
+naturally from the cusp and cervix; in the general case they are free parameters that define
+the measurement orientation.
+
+%------------------------------------------------------------------
+\section{Partition the OES into Intervals}
+%------------------------------------------------------------------
+
+Divide $[0, H]$ into $N$ equal intervals of width $\Delta = H/N$. Define a smooth indicator
+for the $k$-th interval:
+\begin{equation}
+    \chi_k(s)
+    =
+    \sigma\!\left(\beta\bigl(\rho(s) - k\Delta\bigr)\right)
+    \cdot
+    \sigma\!\left(\beta\bigl((k+1)\Delta - \rho(s)\bigr)\right),
+\end{equation}
+where $\sigma$ is the logistic function and $\beta$ controls sharpness.
+
+%------------------------------------------------------------------
+\section{Integrate Developmental Time per Interval}
+%------------------------------------------------------------------
+
+\begin{equation}
+    \mathcal{T}_k
+    =
+    \int_0^L \left|\frac{dt^*}{ds}\right| \chi_k(s)\, ds
+    \;\approx\;
+    \sum_i dt^*_i \cdot \chi_k(s_{i+1/2}),
+\end{equation}
+where $dt^*_i = |t^*(s_{i+1}) - t^*(s_i)|$.
+
+%------------------------------------------------------------------
+\section{Convert to Perikymata Count}
+%------------------------------------------------------------------
+
+Given Retzius periodicity $\mathcal{R}$ (days):
+\begin{equation}
+    P_k = \frac{365\,\mathcal{T}_k}{\mathcal{R}}.
+\end{equation}
+Non-uniform $t^*(s)$ directly produces non-uniform $P_k$, since regions where the off-front
+decelerates accumulate more $dt^*$ per unit projected length.
+
+\end{document}
