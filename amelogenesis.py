@@ -1,29 +1,24 @@
 import numpy as np
 import jax.numpy as jnp
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 from scipy.integrate import solve_ivp
 from scipy.optimize import root_scalar
 
-# parameters
-
-# discretized EDJ arc length
 s_vals = jnp.linspace(1,5,500)
 
 T = 10
 t_eval = np.linspace(0,T,1000)
 
-cf = 1.0               # ON-front speed
-
-# velocities
+cf = 1.0
 
 def vn(s,t):
     return 1.0 + 0.2*jnp.sin(s)
 
 def vt(s,t):
     return 0.4 + 0.1*jnp.cos(t)
-
-# front motion
 
 def phi_f(t):
     return cf*t
@@ -34,107 +29,55 @@ def Delta(t):
 def phi_g(t):
     return phi_f(t)-Delta(t)
 
-# smoother active window
-
 def smooth_active(s,t,beta=20):
-
     left = 0.5*(1+jnp.tanh(beta*(s-phi_g(t))))
     right = 0.5*(1+jnp.tanh(beta*(phi_f(t)-s)))
-
     return left*right
 
-# ode
-
 def ode_system(t,state,s):
-
     x,y = state
-
     a = float(smooth_active(s,t))
-
     dxdt = a*float(vt(s,t))
     dydt = a*float(vn(s,t))
-
     return [dxdt,dydt]
-
-# solve
 
 solutions = []
 termination_times = []
 
 for s in s_vals:
-
     s = float(s)
-
     y0 = [s,0]
-
-    sol = solve_ivp(
-        ode_system,
-        [0,T],
-        y0,
-        t_eval=t_eval,
-        args=(s,),
-        method="RK45",
-        max_step=0.05 
-
+    sol = solve_ivp(ode_system, [0,T], y0, t_eval=t_eval, args=(s,), method="RK45", max_step=0.05)
     solutions.append(sol)
-
-    result = root_scalar(
-        lambda t: phi_g(t)-s,
-        bracket=[0,T]
-    )
-
+    result = root_scalar(lambda t: phi_g(t)-s, bracket=[0,T])
     termination_times.append(result.root)
 
 termination_times = np.array(termination_times)
 
-# final geometry
-
 x_final = np.array([sol.y[0,-1] for sol in solutions])
 y_final = np.array([sol.y[1,-1] for sol in solutions])
 
-# outer enamel surface arc length
-
 S = [0]
-
 for i in range(1,len(x_final)):
-
     dx = x_final[i]-x_final[i-1]
     dy = y_final[i]-y_final[i-1]
-
     S.append(S[-1]+np.sqrt(dx**2+dy**2))
-
 S = np.array(S)
 
-# perikymata distribution
-
-dt_ds = np.gradient(
-    termination_times,
-    np.array(s_vals)
+dt_ds = np.gradient(termination_times, np.array(s_vals))
 ds = float(s_vals[1] - s_vals[0])
 
 N = 20
-
 edges = np.linspace(0,S[-1],N+1)
-
 T_interval = []
-
 for k in range(N):
-
     mask = (S>=edges[k])&(S<edges[k+1])
-
-    T_interval.append(
-        np.sum(np.abs(dt_ds[mask])) * ds
-    )
-
+    T_interval.append(np.sum(np.abs(dt_ds[mask])) * ds)
 T_interval = np.array(T_interval)
 
-edges = np.linspace(0,S[-1],N+1)
-
-T_interval = []
-
 R = 8
-
 PK = 365*T_interval/R
+print("done", PK)
 
 # diagnostic functions
 
